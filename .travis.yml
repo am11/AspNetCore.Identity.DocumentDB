@@ -1,0 +1,60 @@
+language: csharp
+
+matrix:
+  include:
+  - os: linux
+    mono: none
+    dist: trusty
+    sudo: required
+    env: CONFIGURATION=Release LIB_FRAMEWORK=netstandard1.6 TEST_FRAMEWORK=netcoreapp1.0
+    dotnet: 1.0.1
+addons:
+  apt:
+    packages:
+      - xmlstarlet
+
+script:
+- dotnet restore --verbosity Minimal
+- dotnet build
+    --configuration $CONFIGURATION
+    --framework $LIB_FRAMEWORK
+    --version-suffix $TRAVIS_BUILD_ID
+    ./src/AspNetCore.Identity.DocumentDB/AspNetCore.Identity.DocumentDB.csproj
+- dotnet test
+    --configuration $CONFIGURATION
+    --framework $TEST_FRAMEWORK
+    --filter Category!=BreaksUnix
+    ./test/CoreTests/CoreTests.csproj
+# TODO: uncomment the following to enable integration tests
+#       when DocDB emulator is available on Unix. Currently,
+#       all tests are failing.
+#- dotnet test
+#    --configuration $CONFIGURATION
+#    --framework $TEST_FRAMEWORK
+#    ./test/CoreIntegrationTests/CoreIntegrationTests.csproj
+
+after_success:
+- dotnet pack
+    --configuration $CONFIGURATION
+    --framework $LIB_FRAMEWORK
+    --output ./artifacts
+    --version-suffix $TRAVIS_BUILD_ID
+    ./src/AspNetCore.Identity.DocumentDB
+
+before_deploy:
+  - git config --global user.email "travis@felschr.com"
+  - git config --global user.name "Travis CI"
+  - GIT_TAG=($(xmlstarlet sel -t -m "/Project/PropertyGroup/VersionPrefix" -v . src/AspNetCore.Identity.DocumentDB/AspNetCore.Identity.DocumentDB.csproj))
+  - GIT_TAG=${GIT_TAG::-1}$TRAVIS_BUILD_NUMBER
+  - git tag $GIT_TAG -a -m "[skip ci] Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER"
+  - git push -q https://$TAGPERM@github.com/FelschR/aspnetcore-identity-documentdb.git --tags
+  - ls -R
+
+deploy:
+  provider: releases
+  api_key:
+    secure: AeUGvbn9vT55PBDo2As1DiWD+pfpkYhr0R2gUd43W9ewtS0/UlN7RRAYYuzYPEP4BqGVkphm21e0McPUjUUXGuGvQFHuala18htF9qw0QkHwDdZTXNgbKy+Vsx1ogrixXdDbjg5gW/a+4FzfqC1Xz0pzRcn+MzWbNg1eyB83CdEFyc0rCa1mzjUiHmviqkMk772kwR0y52l7yCMjErLcy7ZOweZaHExI8T9x0svNkDJCJ6PeRYJqlIb4J/bWfi09925Q61EDlADMiBkzI8iIxii0ijFs/r0iGo+orgmmkyzIOkiNe4RG8jg+7/hBblgerXTEHn/iy56aH+kJQSHoxv03XvsL1mbEnozyIEKzeDKbKNjLOqiAFhMgLCvouFtgoW+/IiYHxCF2r8Nm+qN9Vrny+tNaJJ4Rj/VnlHOuAuG2NjdtBsDjswUR55qFnTQObzT8vbaSGDfYs4SjWEeL7myt/phE36vnuR+mz4O3+0fxa8P2JLrUllQGBRaAWSqpn8/cnSnHM+vuURCNpSaHei3emNwyrqdazwpiM0n//NEMSdhmh43n4ujwpDdTjRgxJQbvI6izZbIc0DKLjehznwNm4NYwhap6IHBvzwDGb3zVdLaXUanZ1CI+UEfE/P/Rx4a8eN3BBe/0vHw1DKv8u43AfxqKxW9N6qqauMhDmiQ=
+  file: "artifacts/AspNetCore.Identity.DocumentDB.*.nupkg"
+  skip_cleanup: true
+  on:
+    tags: false
