@@ -13,7 +13,7 @@ namespace CoreTests
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    
+
     public class DocumentDBIdentityBuilderExtensionsTests
     {
         static readonly string databaseId = "AspDotNetCore.Identity.DocumentDB.Test";
@@ -22,6 +22,7 @@ namespace CoreTests
         DocumentClient client = new DocumentClient(new Uri("https://localhost:8081"), key);
 
         [Fact]
+        [Trait("Category", "BreaksUnix")]
         public void AddDocumentDBStores_WithDefaultTypes_ResolvesStoresAndManagers()
         {
             var services = new ServiceCollection();
@@ -44,6 +45,7 @@ namespace CoreTests
         }
 
         [Fact]
+        [Trait("Category", "BreaksUnix")]
         public void AddDocumentDBStores_WithDefaultTypesViaOptions_ResolvesStoresAndManagers()
         {
             var services = new ServiceCollection();
@@ -70,6 +72,7 @@ namespace CoreTests
         }
 
         [Fact]
+        [Trait("Category", "BreaksUnix")]
         public void AddDocumentDBStores_WithIdentityOptionsSetsThoseOptions()
         {
             var services = new ServiceCollection();
@@ -101,6 +104,7 @@ namespace CoreTests
         }
 
         [Fact]
+        [Trait("Category", "BreaksUnix")]
         public void AddDocumentDBStores_WithCustomTypes_ThisShouldLookReasonableForUsers()
         {
             // this test is just to make sure I consider the interface for using custom types
@@ -124,6 +128,7 @@ namespace CoreTests
         }
 
         [Fact]
+        [Trait("Category", "BreaksUnix")]
         public void AddDocumentDBStores_WithCustomTypesViaOptions_ThisShouldLookReasonableForUsers()
         {
             // this test is just to make sure I consider the interface for using custom types
@@ -176,6 +181,7 @@ namespace CoreTests
         }
 
         [Fact]
+        [Trait("Category", "BreaksUnix")]
         public void AddDocumentDBStores_MismatchedTypes_ThrowsWarningToHelpUsers()
         {
             var ex = Assert.Throws<ArgumentException>(() =>
@@ -196,6 +202,7 @@ namespace CoreTests
         }
 
         [Fact]
+        [Trait("Category", "BreaksUnix")]
         public async Task AddDocumentDBStores_NewAndExistingCollections()
         {
             var collection = client.CreateDocumentCollectionQuery(UriFactory.CreateDatabaseUri(databaseId)).Where(c => c.Id.Equals("users")).AsEnumerable().FirstOrDefault();
